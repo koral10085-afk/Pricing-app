@@ -8,6 +8,8 @@ import pandas as pd
 from datetime import datetime
 import io
 import base64
+import json
+import os
 
 # הגדרות עמוד
 st.set_page_config(
@@ -67,8 +69,66 @@ st.markdown("""
         border-radius: 8px;
         margin: 5px 0;
     }
+    
+    .success-message {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+    }
 </style>
 """, unsafe_allow_html=True)
+
+# נתיב לקובץ השמירה
+RECIPES_FILE = "saved_recipes.json"
+CUSTOM_ITEMS_FILE = "custom_items.json"
+
+# פונקציות לשמירה וטעינה
+def save_recipes(recipes):
+    """שומר מתכונים לקובץ JSON"""
+    try:
+        with open(RECIPES_FILE, 'w', encoding='utf-8') as f:
+            json.dump(recipes, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception as e:
+        st.error(f"שגיאה בשמירה: {e}")
+        return False
+
+def load_recipes():
+    """טוען מתכונים מקובץ JSON"""
+    if os.path.exists(RECIPES_FILE):
+        try:
+            with open(RECIPES_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def save_custom_items(ingredients, packaging):
+    """שומר פריטים מותאמים אישית"""
+    try:
+        data = {
+            'ingredients': ingredients,
+            'packaging': packaging
+        }
+        with open(CUSTOM_ITEMS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except:
+        return False
+
+def load_custom_items():
+    """טוען פריטים מותאמים אישית"""
+    if os.path.exists(CUSTOM_ITEMS_FILE):
+        try:
+            with open(CUSTOM_ITEMS_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data.get('ingredients', {}), data.get('packaging', {})
+        except:
+            return {}, {}
+    return {}, {}
 
 # מאגר חומרי גלם - כל 102 הפריטים מהאקסל
 INGREDIENTS_DB = {
@@ -216,25 +276,29 @@ PACKAGING_DB = {
 }
 
 # Initialize session state
-if 'custom_ingredients' not in st.session_state:
-    st.session_state.custom_ingredients = {}
-
-if 'custom_packaging' not in st.session_state:
-    st.session_state.custom_packaging = {}
-
-if 'saved_recipes' not in st.session_state:
-    st.session_state.saved_recipes = {}
-
 if 'num_ingredients' not in st.session_state:
     st.session_state.num_ingredients = 5
 
 if 'num_packaging' not in st.session_state:
     st.session_state.num_packaging = 2
 
+# טעינת נתונים שמורים
+if 'saved_recipes' not in st.session_state:
+    st.session_state.saved_recipes = load_recipes()
+
+if 'custom_ingredients' not in st.session_state:
+    ingredients, packaging = load_custom_items()
+    st.session_state.custom_ingredients = ingredients
+    st.session_state.custom_packaging = packaging
+
 # כותרת
 st.markdown("<h1>🎂 תמחור מתכונים</h1>", unsafe_allow_html=True)
 st.markdown("<center>© כל הזכויות שמורות לקורל ביטון 2024</center>", unsafe_allow_html=True)
 st.markdown("---")
+
+# הודעת מצב שמירה
+if os.path.exists(RECIPES_FILE):
+    st.success(f"✅ נטענו {len(st.session_state.saved_recipes)} מתכונים שמורים")
 
 # טאבים
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
@@ -416,24 +480,15 @@ with tab1:
         **רווח: {profit:.0f} ₪**
         """)
         
-        # טבלת מחירים
-        price_table = []
-        for m in [25, 30, 35, 40, 50]:
-            p = total_cost * (1 + m/100)
-            price_table.append({
-                'רווח': f"{m}%",
-                'מחיר': f"{p:.0f} ₪",
-                'רווח ₪': f"{p-total_cost:.0f} ₪"
-            })
-        
-        st.markdown("#### 💎 טבלת מחירים")
-        df_prices = pd.DataFrame(price_table)
-        st.dataframe(df_prices, use_container_width=True, hide_index=True)
-        
         # שמירה
         if recipe_name:
             if st.button("💾 שמור מתכון", type="primary"):
-                st.session_state.saved_recipes[recipe_name] = {
+                # יצירת מפתח ייחודי למתכון
+                recipe_key = f"{recipe_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                
+                # שמירה למילון
+                st.session_state.saved_recipes[recipe_key] = {
+                    'name': recipe_name,
                     'date': datetime.now().strftime("%d/%m/%Y %H:%M"),
                     'items': all_items,
                     'breakdown': items_breakdown,
@@ -450,18 +505,35 @@ with tab1:
                         'profit': profit
                     }
                 }
-                st.success(f"✅ נשמר: {recipe_name}")
-                st.balloons()
+                
+                # שמירה לקובץ
+                if save_recipes(st.session_state.saved_recipes):
+                    st.markdown(f"""
+                    <div class='success-message'>
+                    ✅ המתכון "{recipe_name}" נשמר בהצלחה!<br>
+                    📁 השמירה קבועה ותישאר גם אחרי יציאה מהאפליקציה
+                    </div>
+                    """, unsafe_allow_html=True)
+                    st.balloons()
+                else:
+                    st.error("❌ שגיאה בשמירת המתכון")
         else:
             st.warning("⚠️ הכנס שם למתכון כדי לשמור")
 
 # טאב 2: מתכונים שמורים
 with tab2:
     st.markdown("### 📋 מתכונים שמורים")
+    st.info(f"💾 סה״כ {len(st.session_state.saved_recipes)} מתכונים שמורים בקובץ")
     
     if st.session_state.saved_recipes:
-        for name, data in st.session_state.saved_recipes.items():
-            with st.expander(f"📄 {name} - {data['date']}"):
+        # סידור לפי תאריך
+        sorted_recipes = sorted(st.session_state.saved_recipes.items(), 
+                               key=lambda x: x[1].get('date', ''), 
+                               reverse=True)
+        
+        for key, data in sorted_recipes:
+            recipe_name = data.get('name', key.split('_')[0])
+            with st.expander(f"📄 {recipe_name} - {data['date']}"):
                 # פירוט פריטים
                 st.markdown("**פריטים:**")
                 for item in data['items']:
@@ -486,8 +558,9 @@ with tab2:
                 """)
                 
                 # מחיקה
-                if st.button(f"🗑️ מחק", key=f"del_{name}"):
-                    del st.session_state.saved_recipes[name]
+                if st.button(f"🗑️ מחק", key=f"del_{key}"):
+                    del st.session_state.saved_recipes[key]
+                    save_recipes(st.session_state.saved_recipes)
                     st.rerun()
     else:
         st.info("אין מתכונים שמורים")
@@ -569,12 +642,19 @@ with tab5:
             
             if add_type == "חומר גלם":
                 st.session_state.custom_ingredients[new_name] = new_item
-                st.success(f"✅ נוסף: {new_name}")
+                success_msg = f"✅ נוסף חומר גלם: {new_name}"
             else:
                 st.session_state.custom_packaging[new_name] = new_item
-                st.success(f"✅ נוספה: {new_name}")
+                success_msg = f"✅ נוספה אריזה: {new_name}"
             
-            st.balloons()
+            # שמירה לקובץ
+            if save_custom_items(st.session_state.custom_ingredients, 
+                               st.session_state.custom_packaging):
+                st.success(success_msg)
+                st.info("💾 השינויים נשמרו לקובץ")
+                st.balloons()
+            else:
+                st.error("שגיאה בשמירה")
 
 # טאב 6: ייצוא
 with tab6:
@@ -597,9 +677,9 @@ with tab6:
             # מתכונים
             if st.session_state.saved_recipes:
                 recipes_data = []
-                for name, data in st.session_state.saved_recipes.items():
+                for key, data in st.session_state.saved_recipes.items():
                     recipes_data.append({
-                        'שם': name,
+                        'שם': data.get('name', key.split('_')[0]),
                         'תאריך': data['date'],
                         'עלות': data['costs']['total'],
                         'מחיר מכירה': data['pricing']['selling_price'],
@@ -607,13 +687,6 @@ with tab6:
                     })
                 df_recipes = pd.DataFrame(recipes_data)
                 df_recipes.to_excel(writer, sheet_name='מתכונים', index=False)
-                
-                # פירוט כל מתכון
-                for recipe_name, recipe_data in st.session_state.saved_recipes.items():
-                    if recipe_data.get('breakdown'):
-                        df_detail = pd.DataFrame(recipe_data['breakdown'])
-                        sheet_name = recipe_name[:28] + "..." if len(recipe_name) > 31 else recipe_name
-                        df_detail.to_excel(writer, sheet_name=sheet_name, index=False)
         
         output.seek(0)
         
@@ -624,12 +697,54 @@ with tab6:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
         st.success("✅ הקובץ מוכן להורדה!")
+    
+    # כפתור גיבוי
+    st.markdown("---")
+    st.markdown("### 🔒 גיבוי וטעינה")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("📤 הורד גיבוי JSON"):
+            backup_data = {
+                'recipes': st.session_state.saved_recipes,
+                'custom_ingredients': st.session_state.custom_ingredients,
+                'custom_packaging': st.session_state.custom_packaging
+            }
+            
+            backup_json = json.dumps(backup_data, ensure_ascii=False, indent=2)
+            
+            st.download_button(
+                label="💾 הורד קובץ גיבוי",
+                data=backup_json,
+                file_name=f"backup_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
+                mime="application/json"
+            )
+    
+    with col2:
+        uploaded_file = st.file_uploader("📥 טען גיבוי", type="json")
+        if uploaded_file is not None:
+            try:
+                backup_data = json.load(uploaded_file)
+                st.session_state.saved_recipes = backup_data.get('recipes', {})
+                st.session_state.custom_ingredients = backup_data.get('custom_ingredients', {})
+                st.session_state.custom_packaging = backup_data.get('custom_packaging', {})
+                
+                save_recipes(st.session_state.saved_recipes)
+                save_custom_items(st.session_state.custom_ingredients, 
+                                st.session_state.custom_packaging)
+                
+                st.success("✅ הגיבוי נטען בהצלחה!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"שגיאה בטעינת הגיבוי: {e}")
 
 # פוטר
 st.markdown("---")
 st.markdown("""
 <center>
 <strong>© 2024 כל הזכויות שמורות לקורל ביטון</strong><br>
-אין להעתיק או להפיץ ללא אישור
+אין להעתיק או להפיץ ללא אישור<br>
+<small>גרסה 2.0 - שמירה קבועה</small>
 </center>
 """, unsafe_allow_html=True)
