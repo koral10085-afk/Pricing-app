@@ -61,12 +61,11 @@ st.markdown("""
         margin: 10px 0;
     }
     
-    .recipe-item {
+    .ingredient-row {
         background: #f8f9fa;
-        padding: 8px;
+        padding: 10px;
         border-radius: 8px;
         margin: 5px 0;
-        border-right: 3px solid #FF6B6B;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -226,8 +225,11 @@ if 'custom_packaging' not in st.session_state:
 if 'saved_recipes' not in st.session_state:
     st.session_state.saved_recipes = {}
 
-if 'current_recipe_items' not in st.session_state:
-    st.session_state.current_recipe_items = []
+if 'num_ingredients' not in st.session_state:
+    st.session_state.num_ingredients = 5
+
+if 'num_packaging' not in st.session_state:
+    st.session_state.num_packaging = 2
 
 # כותרת
 st.markdown("<h1>🎂 תמחור מתכונים</h1>", unsafe_allow_html=True)
@@ -239,7 +241,7 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🧮 תמחור",
     "💾 שמורים",
     "🥘 חומרים",
-    "📦 אריזות", 
+    "📦 אריזות",
     "➕ הוספה",
     "📥 ייצוא"
 ])
@@ -249,72 +251,117 @@ with tab1:
     # שם המתכון
     recipe_name = st.text_input("📝 שם המתכון", placeholder="עוגת שוקולד")
     
-    st.markdown("### הוסף פריטים למתכון")
-    
     # איחוד כל המאגרים
     all_ingredients = {**INGREDIENTS_DB, **st.session_state.custom_ingredients}
     all_packaging = {**PACKAGING_DB, **st.session_state.custom_packaging}
     
-    # אזור הוספת פריטים
-    with st.expander("➕ הוסף חומר גלם או אריזה", expanded=True):
-        item_type = st.radio("בחר סוג:", ["🥘 חומר גלם", "📦 אריזה"], horizontal=True)
-        
-        if item_type == "🥘 חומר גלם":
-            selected_item = st.selectbox("בחר חומר:", [""] + sorted(list(all_ingredients.keys())))
-            item_dict = all_ingredients
-            item_type_key = 'ingredient'
-        else:
-            selected_item = st.selectbox("בחר אריזה:", [""] + sorted(list(all_packaging.keys())))
-            item_dict = all_packaging
-            item_type_key = 'packaging'
-        
-        quantity = st.number_input("כמות:", min_value=0.0, value=1.0, step=1.0)
-        
-        if st.button("➕ הוסף לרשימה", type="primary"):
-            if selected_item and quantity > 0:
-                st.session_state.current_recipe_items.append({
-                    'name': selected_item,
-                    'quantity': quantity,
-                    'type': item_type_key,
-                    'details': item_dict[selected_item]
-                })
-                st.success(f"✅ נוסף: {selected_item} ({quantity})")
-                st.rerun()
+    st.markdown("### 🥘 חומרי גלם")
     
-    # הצגת הרשימה
-    if st.session_state.current_recipe_items:
-        st.markdown("### 📋 רשימת הפריטים במתכון")
-        st.info(f"סה״כ {len(st.session_state.current_recipe_items)} פריטים")
+    # בחירת מספר חומרי גלם
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        st.session_state.num_ingredients = st.number_input(
+            "כמה חומרים?",
+            min_value=1,
+            max_value=30,
+            value=st.session_state.num_ingredients,
+            step=1
+        )
+    
+    # רשימת חומרי גלם
+    ingredients_list = []
+    st.markdown("#### הוסף חומרי גלם:")
+    
+    for i in range(st.session_state.num_ingredients):
+        st.markdown(f"<div class='ingredient-row'>", unsafe_allow_html=True)
+        col1, col2 = st.columns([2, 1])
         
-        # טבלת פריטים
-        for idx, item in enumerate(st.session_state.current_recipe_items):
-            col1, col2, col3, col4 = st.columns([1, 3, 1.5, 1])
+        with col1:
+            ingredient = st.selectbox(
+                f"חומר {i+1}",
+                [""] + sorted(list(all_ingredients.keys())),
+                key=f"ing_{i}"
+            )
+        
+        with col2:
+            quantity = st.number_input(
+                "כמות",
+                min_value=0.0,
+                value=0.0,
+                step=1.0,
+                key=f"ing_qty_{i}"
+            )
+        
+        if ingredient and quantity > 0:
+            ingredients_list.append({
+                'name': ingredient,
+                'quantity': quantity,
+                'type': 'ingredient',
+                'details': all_ingredients[ingredient]
+            })
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+    st.markdown("---")
+    st.markdown("### 📦 אריזות")
+    
+    # בחירת מספר אריזות
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        st.session_state.num_packaging = st.number_input(
+            "כמה אריזות?",
+            min_value=0,
+            max_value=10,
+            value=st.session_state.num_packaging,
+            step=1
+        )
+    
+    # רשימת אריזות
+    packaging_list = []
+    if st.session_state.num_packaging > 0:
+        st.markdown("#### הוסף אריזות:")
+        
+        for i in range(st.session_state.num_packaging):
+            st.markdown(f"<div class='ingredient-row'>", unsafe_allow_html=True)
+            col1, col2 = st.columns([2, 1])
+            
             with col1:
-                st.write("🥘" if item['type'] == 'ingredient' else "📦")
+                package = st.selectbox(
+                    f"אריזה {i+1}",
+                    [""] + sorted(list(all_packaging.keys())),
+                    key=f"pkg_{i}"
+                )
+            
             with col2:
-                st.write(f"**{item['name']}**")
-            with col3:
-                unit = item['details'].get('unit', 'יח׳')
-                st.write(f"{item['quantity']} {unit}")
-            with col4:
-                if st.button("❌", key=f"del_{idx}"):
-                    st.session_state.current_recipe_items.pop(idx)
-                    st.rerun()
-        
-        if st.button("🗑️ נקה הכל"):
-            st.session_state.current_recipe_items = []
-            st.rerun()
-        
+                quantity = st.number_input(
+                    "כמות",
+                    min_value=0.0,
+                    value=0.0,
+                    step=1.0,
+                    key=f"pkg_qty_{i}"
+                )
+            
+            if package and quantity > 0:
+                packaging_list.append({
+                    'name': package,
+                    'quantity': quantity,
+                    'type': 'packaging',
+                    'details': all_packaging[package]
+                })
+            st.markdown("</div>", unsafe_allow_html=True)
+    
+    # איחוד הרשימות
+    all_items = ingredients_list + packaging_list
+    
+    if all_items:
         st.markdown("---")
-        
-        # חישוב עלויות
         st.markdown("### 💰 חישוב עלויות")
         
-        # חישוב עלויות פריטים
+        # חישוב עלויות
         total_ingredients = 0
         total_packaging = 0
+        items_breakdown = []
         
-        for item in st.session_state.current_recipe_items:
+        for item in all_items:
             unit_price = item['details']['price'] / item['details']['package']
             item_cost = item['quantity'] * unit_price
             
@@ -322,8 +369,20 @@ with tab1:
                 total_ingredients += item_cost
             else:
                 total_packaging += item_cost
+            
+            items_breakdown.append({
+                'פריט': item['name'],
+                'כמות': f"{item['quantity']} {item['details'].get('unit', 'יח׳')}",
+                'עלות': f"{item_cost:.2f} ₪"
+            })
+        
+        # הצגת פירוט
+        st.markdown("#### 📊 פירוט עלויות")
+        df_breakdown = pd.DataFrame(items_breakdown)
+        st.dataframe(df_breakdown, use_container_width=True, hide_index=True)
         
         # הגדרות נוספות
+        st.markdown("#### ⚙️ הגדרות נוספות")
         col1, col2 = st.columns(2)
         with col1:
             hours = st.number_input("⏰ שעות עבודה", value=0.5, step=0.25)
@@ -336,6 +395,7 @@ with tab1:
         total_cost = total_ingredients + total_packaging + labor_cost + overhead
         
         # תצוגת סיכום
+        st.markdown("#### 📈 סיכום")
         col1, col2 = st.columns(2)
         with col1:
             st.metric("חומרי גלם", f"{total_ingredients:.2f} ₪")
@@ -356,12 +416,27 @@ with tab1:
         **רווח: {profit:.0f} ₪**
         """)
         
+        # טבלת מחירים
+        price_table = []
+        for m in [25, 30, 35, 40, 50]:
+            p = total_cost * (1 + m/100)
+            price_table.append({
+                'רווח': f"{m}%",
+                'מחיר': f"{p:.0f} ₪",
+                'רווח ₪': f"{p-total_cost:.0f} ₪"
+            })
+        
+        st.markdown("#### 💎 טבלת מחירים")
+        df_prices = pd.DataFrame(price_table)
+        st.dataframe(df_prices, use_container_width=True, hide_index=True)
+        
         # שמירה
         if recipe_name:
             if st.button("💾 שמור מתכון", type="primary"):
                 st.session_state.saved_recipes[recipe_name] = {
                     'date': datetime.now().strftime("%d/%m/%Y %H:%M"),
-                    'items': st.session_state.current_recipe_items.copy(),
+                    'items': all_items,
+                    'breakdown': items_breakdown,
                     'costs': {
                         'ingredients': total_ingredients,
                         'packaging': total_packaging,
@@ -532,6 +607,13 @@ with tab6:
                     })
                 df_recipes = pd.DataFrame(recipes_data)
                 df_recipes.to_excel(writer, sheet_name='מתכונים', index=False)
+                
+                # פירוט כל מתכון
+                for recipe_name, recipe_data in st.session_state.saved_recipes.items():
+                    if recipe_data.get('breakdown'):
+                        df_detail = pd.DataFrame(recipe_data['breakdown'])
+                        sheet_name = recipe_name[:28] + "..." if len(recipe_name) > 31 else recipe_name
+                        df_detail.to_excel(writer, sheet_name=sheet_name, index=False)
         
         output.seek(0)
         
