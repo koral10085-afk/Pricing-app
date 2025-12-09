@@ -60,10 +60,18 @@ st.markdown("""
         border-radius: 10px;
         margin: 10px 0;
     }
+    
+    .recipe-item {
+        background: #f8f9fa;
+        padding: 8px;
+        border-radius: 8px;
+        margin: 5px 0;
+        border-right: 3px solid #FF6B6B;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# מאגר חומרי גלם - 102 פריטים
+# מאגר חומרי גלם - כל 102 הפריטים מהאקסל
 INGREDIENTS_DB = {
     'פצפוצי אורז': {'price': 18.9, 'package': 500, 'unit': 'גרם'},
     'שמנת מתוקה 38%': {'price': 7.07, 'package': 250, 'unit': 'גרם'},
@@ -90,6 +98,7 @@ INGREDIENTS_DB = {
     'סוכר חום דמררה': {'price': 12.9, 'package': 1000, 'unit': 'גרם'},
     'סוכר חום כהה': {'price': 14.9, 'package': 1000, 'unit': 'גרם'},
     'מלח': {'price': 1.3, 'package': 1000, 'unit': 'גרם'},
+    'מלח גס': {'price': 1.3, 'package': 1000, 'unit': 'גרם'},
     'קקאו': {'price': 23.9, 'package': 550, 'unit': 'גרם'},
     'תמצית וניל': {'price': 4.9, 'package': 50, 'unit': 'מ״ל'},
     'אבקת אפייה': {'price': 1.9, 'package': 100, 'unit': 'גרם'},
@@ -108,6 +117,7 @@ INGREDIENTS_DB = {
     'קרם קוקוס': {'price': 7.9, 'package': 400, 'unit': 'גרם'},
     'שמרים יבשים': {'price': 6.9, 'package': 500, 'unit': 'גרם'},
     'שמרים טריים': {'price': 3.6, 'package': 50, 'unit': 'גרם'},
+    'שמרים טריים ומשפר אפייה': {'price': 8.9, 'package': 100, 'unit': 'גרם'},
     'חמאה תנובה': {'price': 9.0, 'package': 200, 'unit': 'גרם'},
     'חמאה מפינלנד': {'price': 13.9, 'package': 200, 'unit': 'גרם'},
     'אצבעות קינדר': {'price': 14.9, 'package': 16, 'unit': 'יחידות'},
@@ -116,46 +126,94 @@ INGREDIENTS_DB = {
     'ביצים L': {'price': 13.97, 'package': 12, 'unit': 'יחידות'},
     'גלוקוזה': {'price': 15.0, 'package': 500, 'unit': 'גרם'},
     'מחית וניל': {'price': 129.0, 'package': 120, 'unit': 'גרם'},
-    'צבע מאכל': {'price': 18.0, 'package': 1, 'unit': 'יחידות'},
-    'טופר יום הולדת': {'price': 3.0, 'package': 1, 'unit': 'יחידות'},
-    'סוכריות צבעוניות': {'price': 12.0, 'package': 150, 'unit': 'גרם'},
+    'צבע מאכל קולור מיל': {'price': 35.0, 'package': 1, 'unit': 'יחידות'},
+    'צבע מאכל מג׳יק קולורס': {'price': 18.0, 'package': 1, 'unit': 'יחידות'},
+    'צבע מאכל מנדלברג': {'price': 8.0, 'package': 1, 'unit': 'יחידות'},
+    'מדבקות כיתוב': {'price': 3.0, 'package': 1, 'unit': 'יחידות'},
+    'טופר ימי הולדת': {'price': 3.0, 'package': 1, 'unit': 'יחידות'},
+    'סוכריות ארוכות בצבעים': {'price': 12.0, 'package': 150, 'unit': 'גרם'},
+    'סוכריות מיקס צבעים מיוחדות': {'price': 38.0, 'package': 350, 'unit': 'גרם'},
+    'סוכריות פנינים': {'price': 10.0, 'package': 100, 'unit': 'גרם'},
+    'סוכריות שלג צבעוני': {'price': 18.0, 'package': 100, 'unit': 'גרם'},
+    'סוכריות צורות מיוחדות': {'price': 15.0, 'package': 100, 'unit': 'גרם'},
+    'אבקת נצנצים': {'price': 115.0, 'package': 100, 'unit': 'גרם'},
+    'צבע מאכל לאייבראש': {'price': 26.0, 'package': 1, 'unit': 'יחידות'},
+    'נרות מיני 7.5': {'price': 7.0, 'package': 10, 'unit': 'יחידות'},
+    'כפיות מיני': {'price': 18.0, 'package': 100, 'unit': 'יחידות'},
+    'דפים אכילים בצבעים': {'price': 44.0, 'package': 10, 'unit': 'יחידות'},
     'ממרח spread it': {'price': 60.0, 'package': 1000, 'unit': 'גרם'},
     'ביסקוויטים פתיבר': {'price': 11.5, 'package': 500, 'unit': 'גרם'},
     'פרלין שוקולד': {'price': 40.0, 'package': 500, 'unit': 'גרם'},
-    'קורנפלקס שוקולד': {'price': 35.0, 'package': 400, 'unit': 'גרם'},
+    'קורנפלקס מצופה שוקולד': {'price': 35.0, 'package': 400, 'unit': 'גרם'},
+    'פניני קראנץ׳ חלבי': {'price': 30.0, 'package': 400, 'unit': 'גרם'},
+    'סוכריות עדשי שוקולד פרווה': {'price': 55.0, 'package': 1000, 'unit': 'גרם'},
     'קורנפלור': {'price': 6.9, 'package': 500, 'unit': 'גרם'},
     'במבה': {'price': 4.0, 'package': 100, 'unit': 'גרם'},
+    'קורנפלקס אלופים': {'price': 20.0, 'package': 850, 'unit': 'גרם'},
     'חמאת בוטנים': {'price': 24.0, 'package': 1000, 'unit': 'גרם'},
     'לואקר': {'price': 15.3, 'package': 250, 'unit': 'גרם'},
+    'חמאת קקאו': {'price': 20.9, 'package': 200, 'unit': 'גרם'},
     'פיסטוק': {'price': 140.0, 'package': 1000, 'unit': 'גרם'},
     'אגוזי מלך': {'price': 60.0, 'package': 1000, 'unit': 'גרם'},
     'קשיו': {'price': 85.0, 'package': 1000, 'unit': 'גרם'},
     'בצק עלים': {'price': 25.9, 'package': 1, 'unit': 'יחידות'},
     'בצק פילו': {'price': 19.9, 'package': 1, 'unit': 'יחידות'},
+    'אבקת הפלא': {'price': 40.0, 'package': 150, 'unit': 'גרם'},
     'נטורינה': {'price': 7.9, 'package': 200, 'unit': 'גרם'},
     'מחמאה': {'price': 4.8, 'package': 200, 'unit': 'גרם'},
+    'אפיפיות עלית': {'price': 9.6, 'package': 200, 'unit': 'גרם'},
     'קוקוס': {'price': 28.0, 'package': 1000, 'unit': 'גרם'},
     'טחינה גולמית': {'price': 14.9, 'package': 500, 'unit': 'גרם'},
     'מייפל': {'price': 15.0, 'package': 580, 'unit': 'גרם'},
+    'היפו קינדר': {'price': 14.0, 'package': 5, 'unit': 'יחידות'},
     'חלב מרוכז': {'price': 9.9, 'package': 397, 'unit': 'מ״ל'},
     'חומץ': {'price': 6.9, 'package': 1000, 'unit': 'מ״ל'},
+    'כללי קטן': {'price': 15.0, 'package': 1, 'unit': 'יחידות'},
+    'כללי בינוני': {'price': 20.0, 'package': 1, 'unit': 'יחידות'},
+    'כללי גדול': {'price': 30.0, 'package': 1, 'unit': 'יחידות'},
     'שוקולית': {'price': 12.0, 'package': 400, 'unit': 'גרם'},
-    'ריבת חלב': {'price': 15.9, 'package': 500, 'unit': 'גרם'},
-    'אגוזי לוז': {'price': 59.9, 'package': 1000, 'unit': 'גרם'},
+    'ריבת חלב קומידה': {'price': 15.9, 'package': 500, 'unit': 'גרם'},
+    'אגוזי לוז קצוצים': {'price': 59.9, 'package': 1000, 'unit': 'גרם'},
+    'דפי טרנספר': {'price': 25.0, 'package': 1, 'unit': 'יחידות'},
 }
 
-# מאגר אריזות
+# מאגר אריזות - כל 35 הפריטים מהאקסל
 PACKAGING_DB = {
-    'קופסא 40/30/8': {'price': 8.0, 'package': 1, 'unit': 'יחידות'},
-    'קופסא אינגליש': {'price': 4.5, 'package': 1, 'unit': 'יחידות'},
-    'קופסא מחולקת': {'price': 4.5, 'package': 1, 'unit': 'יחידות'},
-    'קופסא קאפקייקס': {'price': 6.5, 'package': 1, 'unit': 'יחידות'},
-    'מנג׳טים': {'price': 0.25, 'package': 1, 'unit': 'יחידות'},
-    'קריסטליות 10': {'price': 2.5, 'package': 1, 'unit': 'יחידות'},
-    'קריסטליות 16': {'price': 2.3, 'package': 1, 'unit': 'יחידות'},
-    'כיבודיות': {'price': 1.1, 'package': 1, 'unit': 'יחידות'},
-    'קופסת פרלינים': {'price': 3.25, 'package': 1, 'unit': 'יחידות'},
-    'נייר אפייה': {'price': 0.2, 'package': 1, 'unit': 'יחידות'},
+    'קופסאות 40/30/8': {'price': 80, 'package': 10, 'unit': 'יחידות'},
+    'קופסא לאינגליש מכסה גבוה': {'price': 45, 'package': 10, 'unit': 'יחידות'},
+    'קופסא מלבנית מחולקת 20/11/5': {'price': 45, 'package': 10, 'unit': 'יחידות'},
+    'חלוקה פנימית לקופסא 20/20/5': {'price': 20, 'package': 10, 'unit': 'יחידות'},
+    'קופסא ל6 קאפקייקס כולל במה': {'price': 65, 'package': 10, 'unit': 'יחידות'},
+    'קופסא 30/30/11 כולל תחתית פנימית': {'price': 80, 'package': 10, 'unit': 'יחידות'},
+    'מנג׳טים לקאפקייקס צבעים -קוטר 7': {'price': 10, 'package': 40, 'unit': 'יחידות'},
+    'קריסטליות עיגול - 10 ס״מ': {'price': 25, 'package': 10, 'unit': 'יחידות'},
+    'קריסטליות עיגול - 16 ס״מ': {'price': 115, 'package': 50, 'unit': 'יחידות'},
+    'קופסא 24/24/13': {'price': 45, 'package': 5, 'unit': 'יחידות'},
+    'קופסא 25/35/7 עם מכסה גבוה 8.5 ס״מ': {'price': 45, 'package': 10, 'unit': 'יחידות'},
+    'קופסא 25/35/7 עם מכסה גבוה + 5 במות 20 קינוחים': {'price': 40, 'package': 5, 'unit': 'יחידות'},
+    'מארז 20/20/5': {'price': 100, 'package': 20, 'unit': 'יחידות'},
+    'מארז חלוקה מכסה': {'price': 50, 'package': 10, 'unit': 'יחידות'},
+    'כיבודיות': {'price': 110, 'package': 100, 'unit': 'יחידות'},
+    'ברולה -לב אישי': {'price': 110, 'package': 100, 'unit': 'יחידות'},
+    'קריסטל לב קוטר 16': {'price': 105, 'package': 30, 'unit': 'יחידות'},
+    'קרטון בנטו': {'price': 55, 'package': 50, 'unit': 'יחידות'},
+    'אלומיניום מיני אינגליש קייק ומכסה 16/6': {'price': 85, 'package': 50, 'unit': 'יחידות'},
+    'קריסטליות פלסטיק למארז+מכסה 16': {'price': 40, 'package': 10, 'unit': 'יחידות'},
+    'קופסת פרלינים 16 תאים': {'price': 65, 'package': 20, 'unit': 'יחידות'},
+    'קופסת קאפקייקס 4 תאים': {'price': 150, 'package': 50, 'unit': 'יחידות'},
+    'מיכל פרוסת עוגה זהב בודד': {'price': 30, 'package': 50, 'unit': 'יחידות'},
+    'קופסת קאפקייקס 6 תאים': {'price': 75, 'package': 15, 'unit': 'יחידות'},
+    'קופסת עוגת בנטו עם חלון וידית': {'price': 45, 'package': 10, 'unit': 'יחידות'},
+    'קופסת עוגה 25/20/25 או 20/20/6': {'price': 220, 'package': 40, 'unit': 'יחידות'},
+    'מארז עוגה 25/20/25': {'price': 85, 'package': 10, 'unit': 'יחידות'},
+    'קופסת מקרון 30/5/5': {'price': 70, 'package': 20, 'unit': 'יחידות'},
+    'מארז קאפקייקס 6 תאים מכסה שקוף': {'price': 130, 'package': 24, 'unit': 'יחידות'},
+    'קופסה לעוגיות עם חלון שקוף': {'price': 20, 'package': 10, 'unit': 'יחידות'},
+    'נייר אפייה ריבוע 60*40': {'price': 198, 'package': 1000, 'unit': 'יחידות'},
+    'ניירר אפייה עגול - 20': {'price': 15, 'package': 50, 'unit': 'יחידות'},
+    'נייר אפייה - סופגניות': {'price': 15, 'package': 100, 'unit': 'יחידות'},
+    'נייר אפייה בנטו 18*18': {'price': 15, 'package': 50, 'unit': 'יחידות'},
+    'מסכות': {'price': 15, 'package': 10, 'unit': 'יחידות'},
 }
 
 # Initialize session state
@@ -168,8 +226,8 @@ if 'custom_packaging' not in st.session_state:
 if 'saved_recipes' not in st.session_state:
     st.session_state.saved_recipes = {}
 
-if 'current_recipe' not in st.session_state:
-    st.session_state.current_recipe = []
+if 'current_recipe_items' not in st.session_state:
+    st.session_state.current_recipe_items = []
 
 # כותרת
 st.markdown("<h1>🎂 תמחור מתכונים</h1>", unsafe_allow_html=True)
@@ -181,7 +239,7 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🧮 תמחור",
     "💾 שמורים",
     "🥘 חומרים",
-    "📦 אריזות",
+    "📦 אריזות", 
     "➕ הוספה",
     "📥 ייצוא"
 ])
@@ -191,77 +249,81 @@ with tab1:
     # שם המתכון
     recipe_name = st.text_input("📝 שם המתכון", placeholder="עוגת שוקולד")
     
-    st.markdown("### הוסף חומרים")
+    st.markdown("### הוסף פריטים למתכון")
     
     # איחוד כל המאגרים
     all_ingredients = {**INGREDIENTS_DB, **st.session_state.custom_ingredients}
     all_packaging = {**PACKAGING_DB, **st.session_state.custom_packaging}
     
-    # בחירת סוג
-    item_type = st.radio("בחר סוג:", ["🥘 חומר גלם", "📦 אריזה"], horizontal=True)
-    
-    if item_type == "🥘 חומר גלם":
-        selected = st.selectbox("בחר חומר:", [""] + list(all_ingredients.keys()))
-        items_dict = all_ingredients
-        type_key = 'ing'
-    else:
-        selected = st.selectbox("בחר אריזה:", [""] + list(all_packaging.keys()))
-        items_dict = all_packaging
-        type_key = 'pkg'
-    
-    quantity = st.number_input("כמות:", min_value=0.0, value=1.0, step=1.0)
-    
-    # כפתור הוספה
-    if st.button("➕ הוסף לרשימה", type="primary"):
-        if selected and quantity > 0:
-            st.session_state.current_recipe.append({
-                'name': selected,
-                'quantity': quantity,
-                'type': type_key
-            })
-            st.success(f"✅ נוסף: {selected}")
-            st.rerun()
-    
-    # הצגת הרשימה הנוכחית
-    if st.session_state.current_recipe:
-        st.markdown("### 📋 רשימת חומרים")
+    # אזור הוספת פריטים
+    with st.expander("➕ הוסף חומר גלם או אריזה", expanded=True):
+        item_type = st.radio("בחר סוג:", ["🥘 חומר גלם", "📦 אריזה"], horizontal=True)
         
-        # טבלה עם מחיקה
-        for i, item in enumerate(st.session_state.current_recipe):
-            col1, col2, col3, col4 = st.columns([1, 3, 1, 1])
+        if item_type == "🥘 חומר גלם":
+            selected_item = st.selectbox("בחר חומר:", [""] + sorted(list(all_ingredients.keys())))
+            item_dict = all_ingredients
+            item_type_key = 'ingredient'
+        else:
+            selected_item = st.selectbox("בחר אריזה:", [""] + sorted(list(all_packaging.keys())))
+            item_dict = all_packaging
+            item_type_key = 'packaging'
+        
+        quantity = st.number_input("כמות:", min_value=0.0, value=1.0, step=1.0)
+        
+        if st.button("➕ הוסף לרשימה", type="primary"):
+            if selected_item and quantity > 0:
+                st.session_state.current_recipe_items.append({
+                    'name': selected_item,
+                    'quantity': quantity,
+                    'type': item_type_key,
+                    'details': item_dict[selected_item]
+                })
+                st.success(f"✅ נוסף: {selected_item} ({quantity})")
+                st.rerun()
+    
+    # הצגת הרשימה
+    if st.session_state.current_recipe_items:
+        st.markdown("### 📋 רשימת הפריטים במתכון")
+        st.info(f"סה״כ {len(st.session_state.current_recipe_items)} פריטים")
+        
+        # טבלת פריטים
+        for idx, item in enumerate(st.session_state.current_recipe_items):
+            col1, col2, col3, col4 = st.columns([1, 3, 1.5, 1])
             with col1:
-                st.write("🥘" if item['type'] == 'ing' else "📦")
+                st.write("🥘" if item['type'] == 'ingredient' else "📦")
             with col2:
-                st.write(item['name'])
+                st.write(f"**{item['name']}**")
             with col3:
-                st.write(f"{item['quantity']}")
+                unit = item['details'].get('unit', 'יח׳')
+                st.write(f"{item['quantity']} {unit}")
             with col4:
-                if st.button("❌", key=f"del_{i}"):
-                    st.session_state.current_recipe.pop(i)
+                if st.button("❌", key=f"del_{idx}"):
+                    st.session_state.current_recipe_items.pop(idx)
                     st.rerun()
         
-        # כפתור ניקוי
         if st.button("🗑️ נקה הכל"):
-            st.session_state.current_recipe = []
+            st.session_state.current_recipe_items = []
             st.rerun()
         
         st.markdown("---")
         
         # חישוב עלויות
-        total_ing = 0
-        total_pkg = 0
+        st.markdown("### 💰 חישוב עלויות")
         
-        for item in st.session_state.current_recipe:
-            if item['type'] == 'ing' and item['name'] in all_ingredients:
-                ing = all_ingredients[item['name']]
-                cost = item['quantity'] * (ing['price'] / ing['package'])
-                total_ing += cost
-            elif item['type'] == 'pkg' and item['name'] in all_packaging:
-                pkg = all_packaging[item['name']]
-                cost = item['quantity'] * (pkg['price'] / pkg['package'])
-                total_pkg += cost
+        # חישוב עלויות פריטים
+        total_ingredients = 0
+        total_packaging = 0
         
-        # הגדרות
+        for item in st.session_state.current_recipe_items:
+            unit_price = item['details']['price'] / item['details']['package']
+            item_cost = item['quantity'] * unit_price
+            
+            if item['type'] == 'ingredient':
+                total_ingredients += item_cost
+            else:
+                total_packaging += item_cost
+        
+        # הגדרות נוספות
         col1, col2 = st.columns(2)
         with col1:
             hours = st.number_input("⏰ שעות עבודה", value=0.5, step=0.25)
@@ -270,36 +332,50 @@ with tab1:
             overhead = st.number_input("⚡ תקורות", value=5.0, step=1.0)
             margin = st.slider("📈 רווח %", 20, 50, 35)
         
-        labor = hours * rate
-        total = total_ing + total_pkg + labor + overhead
+        labor_cost = hours * rate
+        total_cost = total_ingredients + total_packaging + labor_cost + overhead
         
-        # תצוגת עלויות
-        st.markdown("### 💰 סיכום")
-        
+        # תצוגת סיכום
         col1, col2 = st.columns(2)
         with col1:
-            st.metric("חומרים", f"{total_ing:.2f} ₪")
-            st.metric("אריזות", f"{total_pkg:.2f} ₪")
+            st.metric("חומרי גלם", f"{total_ingredients:.2f} ₪")
+            st.metric("אריזות", f"{total_packaging:.2f} ₪")
         with col2:
-            st.metric("עבודה", f"{labor:.2f} ₪")
+            st.metric("עבודה", f"{labor_cost:.2f} ₪")
             st.metric("תקורות", f"{overhead:.2f} ₪")
         
-        st.markdown(f"<div class='price-highlight'>עלות: {total:.2f} ₪</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='price-highlight'>עלות כוללת: {total_cost:.2f} ₪</div>", unsafe_allow_html=True)
         
-        # מחירי מכירה
-        price = total * (1 + margin/100)
-        st.success(f"**מחיר מכירה מומלץ ({margin}%): {price:.0f} ₪**")
+        # מחיר מכירה
+        selling_price = total_cost * (1 + margin/100)
+        profit = selling_price - total_cost
+        
+        st.success(f"""
+        ### מחיר מכירה מומלץ ({margin}%)
+        # {selling_price:.0f} ₪
+        **רווח: {profit:.0f} ₪**
+        """)
         
         # שמירה
         if recipe_name:
             if st.button("💾 שמור מתכון", type="primary"):
                 st.session_state.saved_recipes[recipe_name] = {
-                    'date': datetime.now().strftime("%d/%m %H:%M"),
-                    'recipe': st.session_state.current_recipe.copy(),
-                    'cost': total,
-                    'price': price
+                    'date': datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    'items': st.session_state.current_recipe_items.copy(),
+                    'costs': {
+                        'ingredients': total_ingredients,
+                        'packaging': total_packaging,
+                        'labor': labor_cost,
+                        'overhead': overhead,
+                        'total': total_cost
+                    },
+                    'pricing': {
+                        'margin': margin,
+                        'selling_price': selling_price,
+                        'profit': profit
+                    }
                 }
-                st.success(f"✅ נשמר!")
+                st.success(f"✅ נשמר: {recipe_name}")
                 st.balloons()
         else:
             st.warning("⚠️ הכנס שם למתכון כדי לשמור")
@@ -311,14 +387,31 @@ with tab2:
     if st.session_state.saved_recipes:
         for name, data in st.session_state.saved_recipes.items():
             with st.expander(f"📄 {name} - {data['date']}"):
-                st.write(f"**עלות:** {data['cost']:.2f} ₪")
-                st.write(f"**מחיר:** {data.get('price', 0):.0f} ₪")
+                # פירוט פריטים
+                st.markdown("**פריטים:**")
+                for item in data['items']:
+                    icon = "🥘" if item['type'] == 'ingredient' else "📦"
+                    unit = item['details'].get('unit', 'יח׳')
+                    st.write(f"{icon} {item['name']}: {item['quantity']} {unit}")
                 
-                for item in data['recipe']:
-                    icon = "🥘" if item['type'] == 'ing' else "📦"
-                    st.write(f"{icon} {item['name']}: {item['quantity']}")
+                # עלויות
+                st.markdown("---")
+                costs = data['costs']
+                st.write(f"חומרי גלם: {costs['ingredients']:.2f} ₪")
+                st.write(f"אריזות: {costs['packaging']:.2f} ₪")
+                st.write(f"עבודה: {costs['labor']:.2f} ₪")
+                st.write(f"תקורות: {costs['overhead']:.2f} ₪")
+                st.success(f"**עלות כוללת: {costs['total']:.2f} ₪**")
                 
-                if st.button(f"🗑️ מחק", key=f"del_saved_{name}"):
+                # תמחור
+                pricing = data['pricing']
+                st.info(f"""
+                **מחיר מכירה ({pricing['margin']}%): {pricing['selling_price']:.0f} ₪**
+                **רווח: {pricing['profit']:.0f} ₪**
+                """)
+                
+                # מחיקה
+                if st.button(f"🗑️ מחק", key=f"del_{name}"):
                     del st.session_state.saved_recipes[name]
                     st.rerun()
     else:
@@ -331,24 +424,24 @@ with tab3:
     all_ing = {**INGREDIENTS_DB, **st.session_state.custom_ingredients}
     st.info(f"סה״כ: {len(all_ing)} חומרים")
     
-    search = st.text_input("🔍 חיפוש חומר")
+    search = st.text_input("🔍 חיפוש")
     
     filtered = all_ing
     if search:
-        filtered = {k: v for k, v in all_ing.items() if search in k}
+        filtered = {k: v for k, v in all_ing.items() if search.lower() in k.lower()}
     
     if filtered:
-        data = []
+        data_list = []
         for name, details in filtered.items():
             unit_price = details['price'] / details['package']
-            data.append({
+            data_list.append({
                 'שם': name,
                 'מחיר': f"{details['price']} ₪",
                 'אריזה': f"{details['package']} {details['unit']}",
                 'ליחידה': f"{unit_price:.4f} ₪"
             })
         
-        df = pd.DataFrame(data)
+        df = pd.DataFrame(data_list)
         st.dataframe(df, use_container_width=True, hide_index=True)
 
 # טאב 4: אריזות
@@ -358,23 +451,24 @@ with tab4:
     all_pkg = {**PACKAGING_DB, **st.session_state.custom_packaging}
     st.info(f"סה״כ: {len(all_pkg)} אריזות")
     
-    data = []
+    data_list = []
     for name, details in all_pkg.items():
         unit_price = details['price'] / details['package']
-        data.append({
+        data_list.append({
             'שם': name,
-            'מחיר': f"{details['price']} ₪",
+            'מחיר חבילה': f"{details['price']} ₪",
+            'כמות': details['package'],
             'ליחידה': f"{unit_price:.2f} ₪"
         })
     
-    df = pd.DataFrame(data)
+    df = pd.DataFrame(data_list)
     st.dataframe(df, use_container_width=True, hide_index=True)
 
-# טאב 5: הוספת חומרים חדשים
+# טאב 5: הוספת פריטים חדשים
 with tab5:
     st.markdown("### ➕ הוספת פריט חדש למאגר")
     
-    add_type = st.radio("סוג פריט:", ["חומר גלם", "אריזה"])
+    add_type = st.radio("סוג:", ["חומר גלם", "אריזה"])
     
     new_name = st.text_input("שם הפריט:")
     
@@ -400,10 +494,10 @@ with tab5:
             
             if add_type == "חומר גלם":
                 st.session_state.custom_ingredients[new_name] = new_item
-                st.success(f"✅ נוסף חומר גלם: {new_name}")
+                st.success(f"✅ נוסף: {new_name}")
             else:
                 st.session_state.custom_packaging[new_name] = new_item
-                st.success(f"✅ נוספה אריזה: {new_name}")
+                st.success(f"✅ נוספה: {new_name}")
             
             st.balloons()
 
@@ -411,7 +505,7 @@ with tab5:
 with tab6:
     st.markdown("### 📥 ייצוא לאקסל")
     
-    if st.button("💾 הורד הכל לאקסל", type="primary"):
+    if st.button("💾 הכן קובץ אקסל", type="primary"):
         output = io.BytesIO()
         
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
@@ -432,18 +526,18 @@ with tab6:
                     recipes_data.append({
                         'שם': name,
                         'תאריך': data['date'],
-                        'עלות': data['cost'],
-                        'מחיר': data.get('price', 0)
+                        'עלות': data['costs']['total'],
+                        'מחיר מכירה': data['pricing']['selling_price'],
+                        'רווח': data['pricing']['profit']
                     })
                 df_recipes = pd.DataFrame(recipes_data)
                 df_recipes.to_excel(writer, sheet_name='מתכונים', index=False)
         
         output.seek(0)
-        b64 = base64.b64encode(output.read()).decode()
         
         st.download_button(
             label="📥 הורד קובץ אקסל",
-            data=base64.b64decode(b64),
+            data=output.getvalue(),
             file_name=f"תמחור_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
@@ -453,7 +547,7 @@ with tab6:
 st.markdown("---")
 st.markdown("""
 <center>
-© 2024 כל הזכויות שמורות לקורל ביטון<br>
+<strong>© 2024 כל הזכויות שמורות לקורל ביטון</strong><br>
 אין להעתיק או להפיץ ללא אישור
 </center>
 """, unsafe_allow_html=True)
